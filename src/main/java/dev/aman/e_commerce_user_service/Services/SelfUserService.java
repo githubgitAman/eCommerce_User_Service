@@ -13,7 +13,7 @@ import java.time.ZoneId;
 import java.util.Optional;
 import java.util.Date;
 
-@Service("SelfUserService")
+@Service
 public class SelfUserService implements UserService {
 
     UserRepository userRepository;
@@ -55,13 +55,28 @@ public class SelfUserService implements UserService {
 
     @Override
     public void logout(String token) {
-
+        Optional<Tokens> optionalTokens = tokensRepository.findByValueAndDeletedAndExpiryAtGreaterThan(token, false, new Date());
+        if(optionalTokens.isEmpty())
+            throw new RuntimeException("Token not found");
+        Tokens tokens = optionalTokens.get();
+        tokens.setDeleted(true);
+        tokensRepository.save(tokens);
     }
 
     @Override
     public User validateUser(String token) {
-        return null;
+        //First we need to find if value is there in DB or not
+        //Also need to check expiry time
+        Optional<Tokens> DBTokens = tokensRepository.findByValueAndDeletedAndExpiryAtGreaterThan(token, false, new Date());
+        if(DBTokens.isEmpty()) {
+            return null;
+        }
+        //Returning the user after validating
+        //get() method as we are working on optional object
+        //First it will get the object than it will get the user
+        return DBTokens.get().getUser();
     }
+
     public Tokens generateToken(User user) {
         Tokens tokens = new Tokens();
         tokens.setUser(user);

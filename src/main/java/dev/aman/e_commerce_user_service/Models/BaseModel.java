@@ -11,6 +11,15 @@ public class BaseModel {
     private Long id;
     private Date createdAt;
     private Date updatedAt;
+    private boolean deleted;
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
 
     public Long getId() {
         return id;

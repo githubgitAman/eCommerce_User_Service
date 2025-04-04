@@ -13,6 +13,9 @@ public class UserDTOs {
     //Converting User to UserDTOs
     public static UserDTOs fromUser(User user) {
         UserDTOs userDTOs = new UserDTOs();
+        if(user == null) {
+            return null;
+        }
         userDTOs.name = user.getName();
         userDTOs.email = user.getEmail();
         userDTOs.roles = user.getRoles();
