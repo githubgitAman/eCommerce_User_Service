@@ -6,11 +6,11 @@ public class SignUpRequestDTOs {
     private String password;
     private String email;
 
-    public String getUsername() {
+    public String getName() {
         return name;
     }
 
-    public void setUsername(String name) {
+    public void setame(String name) {
         this.name = name;
     }
 

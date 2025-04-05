@@ -59,6 +59,7 @@ public class SelfUserService implements UserService {
         if(optionalTokens.isEmpty())
             throw new RuntimeException("Token not found");
         Tokens tokens = optionalTokens.get();
+        //Marking deleted method as true
         tokens.setDeleted(true);
         tokensRepository.save(tokens);
     }
