@@ -1,10 +1,14 @@
 package dev.aman.e_commerce_user_service.Services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.aman.e_commerce_user_service.DTOs.SendEmailDTOs;
 import dev.aman.e_commerce_user_service.Models.Tokens;
 import dev.aman.e_commerce_user_service.Models.User;
 import dev.aman.e_commerce_user_service.Repository.TokensRepository;
 import dev.aman.e_commerce_user_service.Repository.UserRepository;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +23,17 @@ public class SelfUserService implements UserService {
     UserRepository userRepository;
     BCryptPasswordEncoder bCryptPasswordEncoder;
     TokensRepository tokensRepository;
-    public SelfUserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, TokensRepository tokensRepository) {
+    KafkaTemplate<String, String> kafkaTemplate;
+    //Jackson library to convert our DTO object to JSON String
+    ObjectMapper objectMapper;
+
+    public SelfUserService(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder, TokensRepository tokensRepository, KafkaTemplate<String, String> kafkaTemplate,
+                           ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokensRepository = tokensRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -50,6 +61,20 @@ public class SelfUserService implements UserService {
         user.setEmail(email);
         //Before storing password in DB we need to encrypt it beforehand
         user.setHashPassword(bCryptPasswordEncoder.encode(password));
+
+        //Implementing Kafka
+        SendEmailDTOs sendEmailDTOs = new SendEmailDTOs();
+        sendEmailDTOs.setTo(email);
+        sendEmailDTOs.setSubject("Welcome to Commerce User Service");
+        sendEmailDTOs.setBody("We are happy to have you");
+        try {
+            kafkaTemplate.send("sendEmail"
+                    //Instead of sending DTOs object we are sending JSON String over network
+                    ,objectMapper.writeValueAsString(sendEmailDTOs));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
         return userRepository.save(user);
     }
 
