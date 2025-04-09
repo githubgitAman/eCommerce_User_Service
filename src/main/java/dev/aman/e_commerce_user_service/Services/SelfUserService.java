@@ -75,6 +75,7 @@ public class SelfUserService implements UserService {
             throw new RuntimeException(e);
         }
 
+
         return userRepository.save(user);
     }
 
